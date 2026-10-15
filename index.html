@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GRAVE — Discord Permissions</title>
+<link rel="icon" type="image/webp" href="graves.webp">
+<link rel="apple-touch-icon" href="graves.webp">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+:root{--accent:#f5c518;--bg:#121314;--card:#1a1b1e}
+body{background:var(--bg);color:#dbdee1;font-family:Whitney,"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden}
+body::before{display:none}
+/* LOADER */
+#loader{position:fixed;inset:0;background:#0c0d0f;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .35s,visibility .35s}
+#loader.done{opacity:0;visibility:hidden}
+#loader img{width:72px;height:72px;object-fit:cover;border-radius:18px}
+#loader .lt{color:#fff;font-weight:700;font-size:16px;letter-spacing:3px}
+#loader .lt span{color:var(--accent)}
+#loader .bar{width:140px;height:2px;background:#222326;border-radius:99px;overflow:hidden}
+#loader .bar i{display:block;height:100%;width:30%;background:var(--accent);border-radius:99px;animation:load 0.9s ease-in-out infinite}
+@keyframes load{0%{transform:translateX(-140%)}100%{transform:translateX(470%)}}
+#loader .sub,#loader .pct{display:none}
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;padding:8px 16px;background:#0b0c0e;border-bottom:1px solid #1e1f22}
+.top img{width:32px;height:32px;object-fit:cover;border-radius:50%;background:#000;border:2px solid var(--accent)}
+.top .name{color:#fff;font-weight:700;font-size:16px}
+.top .name span{color:var(--accent)}
+.lang-picker{position:relative}
+.lang-btn{background:transparent;color:#dbdee1;border:0;border-radius:8px;padding:7px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500;white-space:nowrap}
+.lang-btn:hover{background:rgba(255,255,255,.07)}
+.lang-btn svg{opacity:.85}
+.lang-btn .chev{transition:.2s;font-size:9px;opacity:.5}
+.lang-picker.open .lang-btn{background:rgba(255,255,255,.09)}
+.lang-picker.open .lang-btn .chev{transform:rotate(180deg)}
+.lang-menu{position:absolute;right:0;top:calc(100% + 8px);background:#111214;border:1px solid #2a2b30;border-radius:12px;min-width:190px;padding:6px;box-shadow:0 16px 40px rgba(0,0,0,.6);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.16s ease;z-index:100}
+.lang-picker.open .lang-menu{opacity:1;visibility:visible;transform:none}
+.lang-menu .mtitle{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#77787c;padding:8px 10px 4px}
+.lang-item{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;color:#c4c6ca;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:14px;text-align:left}
+.lang-item:hover{background:#1e1f22;color:#fff}
+.lang-item.active{color:#fff}
+.lang-item .tick{margin-left:auto;opacity:0;font-size:13px;color:var(--accent);font-weight:800}
+.lang-item.active .tick{opacity:1}
+.top .right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-gold{background:linear-gradient(135deg,#f5c518,#ff8a00);border:0;color:#000;font-weight:700;border-radius:8px;padding:8px 14px;cursor:pointer;transition:transform .15s ease}
+.btn-gold:hover{transform:translateY(-1px)}
+.btn-gold:active{transform:translateY(0) scale(.97)}
+.wrap{max-width:1120px;margin:0 auto;padding:18px 18px 44px;position:relative;animation:pageIn .45s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.calc-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
+.calc{font-family:Consolas,Menlo,monospace;color:#dbdee1;font-size:14px;background:#1a1b1e;border:1px solid #26272b;padding:10px 14px;border-radius:10px;display:inline-block;margin:0}
+.risk-pill{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:9px 13px;border-radius:99px;border:1px solid #2a2b30;background:#1a1b1e;color:#b9bbbe;transition:background-color .15s ease}
+.risk-pill .dot{width:9px;height:9px;border-radius:50%;background:#57F287}
+.risk-pill.low .dot{background:#57F287}.risk-pill.med .dot{background:#FEE75C}.risk-pill.high .dot{background:#ED9121}.risk-pill.crit .dot{background:#ED4245;animation:blink 1s ease infinite}
+@keyframes blink{50%{opacity:.35}}
+.risk-pill.low{border-color:#1f3d2b}.risk-pill.med{border-color:#4d4420}.risk-pill.high{border-color:#5a3a17}.risk-pill.crit{border-color:#5c2326;color:#fff}
+.admin-warn{margin:0 0 12px;background:rgba(237,66,69,.1);border:1px solid #ED4245;border-radius:10px;padding:11px 13px;color:#ffb3b5;font-size:13.5px;font-weight:600;animation:warnIn .25s ease}
+@keyframes warnIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.calc code{color:var(--accent);font-weight:700}
+.calc.bump{animation:bump .22s ease}
+@keyframes bump{30%{transform:scale(1.03)}}
+.cols{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:2px}
+@media(min-width:760px){.cols{grid-template-columns:1fr 1fr 1fr}}
+.card{background:var(--card);border:1px solid #1e1f22;border-radius:12px;padding:14px;animation:cardIn .4s ease both}
+.card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.14s}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.cols h2{color:#fff;font-size:17px;font-weight:600;margin:0 0 8px;display:flex;align-items:center;gap:8px}
+.cols h2::before{content:'';width:8px;height:8px;border-radius:99px;background:var(--accent)}
+.row{display:flex;align-items:center;gap:10px;padding:5px 6px;cursor:pointer;border-radius:6px;transition:background-color .12s ease,transform .12s ease}
+.row:hover{background:#222327;transform:translateX(2px)}
+.row:active{transform:translateX(2px) scale(.995)}
+.box{width:18px;height:18px;min-width:18px;border:2px solid #80848e;border-radius:4px;position:relative;background:transparent;transition:transform .15s ease,background-color .15s ease,border-color .15s ease}
+.row.on .box{background:var(--accent);border-color:var(--accent)}
+.row.on .box::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #000;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.row.pop .box{animation:pop .22s ease}
+@keyframes pop{40%{transform:scale(1.25)}}
+.lbl{user-select:none}
+.lbl.orange{color:#f26522}
+.note{margin:0;color:#a8a9ad;font-size:13.5px;line-height:1.5;background:#1a1b1e;border:1px solid #26272b;border-left:3px solid var(--accent);border-radius:8px;padding:10px 12px}
+.note a{color:var(--accent);text-decoration:none}
+.bottom-card{margin-top:16px;background:var(--card);border:1px solid #26272b;border-radius:14px;padding:20px 18px 18px}
+h2.invite{color:#fff;font-size:20px;margin:16px 0 6px;padding-top:2px;display:flex;align-items:center;gap:10px}
+h2.invite::before{content:'';width:8px;height:8px;border-radius:99px;background:var(--accent)}
+.ichecks{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 4px}
+.pill{border:1px solid #3a3b40;border-radius:99px;padding:8px 14px;font-size:13.5px}
+.pill:hover{border-color:var(--accent)}
+.row.on.pill{border-color:var(--accent);background:rgba(245,197,24,.1)}
+.field label{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#77787c;margin:14px 0 6px}
+.field input[type=text]{background:#101114;border:1px solid #2a2b30;color:#fff;outline:0;padding:11px 12px;font-size:14px;font-family:Consolas,monospace;width:320px;max-width:100%;border-radius:10px;transition:.15s}
+.field input[type=text]:focus{border-color:var(--accent)}
+.field input.error{border-color:#f04747}
+.invite-link{margin-top:12px;word-break:break-all;font-size:12.5px;font-family:Consolas,monospace;background:#0e0f11;border:1px dashed #3a3b40;padding:12px;border-radius:10px}
+.invite-link a{color:#57a5ff;text-decoration:none}
+.invite-link.flash{animation:flash .3s ease}
+@keyframes flash{from{opacity:.3}to{opacity:1}}
+.invite-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.abtn{background:#2b2d31;border:1px solid #3a3b40;color:#fff;border-radius:9px;padding:9px 14px;cursor:pointer;font-size:13.5px;font-weight:600;transition:transform .15s ease,background-color .15s ease}
+.abtn:hover{background:#35373c;transform:translateY(-1px)}
+.abtn:active{transform:scale(.97)}
+.abtn.gold{background:var(--accent);border-color:var(--accent);color:#000}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+.mini{margin-top:16px;padding-top:14px;border-top:1px solid #26272b;display:flex;flex-wrap:wrap;gap:8px}
+.mini input{flex:1;min-width:200px;background:#101114;border:1px solid #2a2b30;color:#dbdee1;border-radius:9px;padding:9px 11px;font-family:Consolas,monospace;font-size:13px}
+.mini button{background:#2b2d31;border:1px solid #3a3b40;color:#dbdee1;border-radius:9px;padding:9px 13px;cursor:pointer;font-size:13px;font-weight:600}
+.mini button:hover{background:#35373c;color:#fff}
+.mini button:first-of-type{background:#2b2d31;border-color:var(--accent);color:var(--accent)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#111214;border:1px solid var(--accent);color:#fff;padding:10px 18px;border-radius:8px;opacity:0;transition:.3s;z-index:1000}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none}
+[dir=rtl] .row{flex-direction:row-reverse}
+</style>
+</head>
+<body>
+<div id="loader"><img src="graves.webp" alt="GRAVE" width="72" height="72" decoding="async"><div class="lt"><span>GRAVE</span></div><div class="bar"><i></i></div></div>
+<div class="top"><img src="graves.webp" alt="GRAVE" width="32" height="32" decoding="async"><div class="name"><span>GRAVE</span> Permissions</div>
+<div class="right"><div class="lang-picker" id="langPicker"><button class="lang-btn" onclick="toggleLangMenu(event)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20 15 15 0 010-20z"/></svg><span id="langName">English</span><span class="chev">▼</span></button><div class="lang-menu" id="langMenu"></div></div><button class="btn-gold" id="copyTop" onclick="copyDec()">Copy 0</button></div></div>
+<div class="wrap">
+<div class="calc-row"><div class="calc"><code id="number">0</code> = <code id="equation">0x0</code></div><div class="risk-pill" id="riskPill"><span class="dot"></span><span id="riskTxt"></span></div></div>
+<div class="admin-warn hidden" id="adminWarn"></div>
+<div class="cols">
+<div class="card"><h2 id="h-general"></h2><div id="list-general"></div></div>
+<div class="card"><h2 id="h-text"></h2><div id="list-text"></div></div>
+<div class="card"><h2 id="h-voice"></h2><div id="list-voice"></div></div>
+</div>
+<div class="note" id="note1" style="margin-top:18px"></div>
+<div class="note" id="note2" style="margin-top:10px"></div>
+<div class="bottom-card" style="margin-top:14px">
+<h2 class="invite" id="h-invite"></h2>
+<div class="ichecks">
+<div class="row pill" id="rowScopes" onclick="toggleScopes()"><div class="box"></div><div class="lbl" id="lbl-scopes"></div></div>
+<div class="row pill" id="rowCode" onclick="toggleCode()"><div class="box"></div><div class="lbl" id="lbl-code"></div></div>
+</div>
+<div class="field"><label id="lbl-client"></label><input id="clientID" type="text" value="1234567890" oninput="recalculate()"></div>
+<div id="scopeField" class="field hidden"><label>Scopes</label><input id="oauthScopes" type="text" value="bot applications.commands" oninput="recalculate()"></div>
+<div class="invite-link"><a href="#" id="invite" target="_blank" rel="noopener"></a></div>
+<div class="invite-actions"><button class="abtn gold" id="b-copyLink" onclick="copyInvite()">📋 Copy Link</button><button class="abtn" id="b-open" onclick="openInvite()">↗ Open</button></div>
+</div>
+</div>
+<div id="toast"></div>
+<script>
+const PERMS=[
+{id:"selGeneral",cat:"general",sel:1},{id:"administrator",cat:"general",v:8n,tfa:1},{id:"manage_roles",cat:"general",v:268435456n,tfa:1},
+{id:"kick",cat:"general",v:2n,tfa:1},{id:"create_invite",cat:"general",v:1n},{id:"manage_nicknames",cat:"general",v:134217728n},
+{id:"manage_guild",cat:"general",v:32n,tfa:1},{id:"manage_channels",cat:"general",v:16n,tfa:1},{id:"ban",cat:"general",v:4n,tfa:1},
+{id:"change_nickname",cat:"general",v:67108864n},{id:"manage_webhooks",cat:"general",v:536870912n,tfa:1},
+{id:"manage_emojis",cat:"general",v:1073741824n,tfa:1},{id:"view_audit",cat:"general",v:128n},{id:"view_insights",cat:"general",v:524288n},
+{id:"view_channel",cat:"general",v:1024n},{id:"timeout",cat:"general",v:1099511627776n,tfa:1},{id:"manage_events",cat:"general",v:8589934592n},
+{id:"create_events",cat:"general",v:17592186044416n},{id:"create_expressions",cat:"general",v:8796093022208n},{id:"view_creator",cat:"general",v:2199023255552n,tfa:1},
+{id:"selText",cat:"text",sel:1},{id:"send_tts",cat:"text",v:4096n},{id:"embed",cat:"text",v:16384n},{id:"read_history",cat:"text",v:65536n},
+{id:"use_emoji",cat:"text",v:262144n},{id:"send_messages",cat:"text",v:2048n},{id:"manage_messages",cat:"text",v:8192n,tfa:1},
+{id:"attach",cat:"text",v:32768n},{id:"mention",cat:"text",v:131072n},{id:"reactions",cat:"text",v:64n},{id:"slash",cat:"text",v:2147483648n},
+{id:"public_threads",cat:"text",v:34359738368n},{id:"private_threads",cat:"text",v:68719476736n},{id:"send_thread",cat:"text",v:274877906944n},
+{id:"manage_threads",cat:"text",v:17179869184n,tfa:1},{id:"stickers",cat:"text",v:137438953472n},{id:"voice_msg",cat:"text",v:70368744177664n},
+{id:"polls",cat:"text",v:562949953421312n},{id:"pin",cat:"text",v:2251799813685248n,tfa:1},{id:"slowmode",cat:"text",v:4503599627370496n},{id:"apps",cat:"text",v:1125899906842624n},
+{id:"selVoice",cat:"voice",sel:1},{id:"connect",cat:"voice",v:1048576n},{id:"mute",cat:"voice",v:4194304n},{id:"move",cat:"voice",v:16777216n},
+{id:"speak",cat:"voice",v:2097152n},{id:"deafen",cat:"voice",v:8388608n},{id:"vad",cat:"voice",v:33554432n},{id:"stream",cat:"voice",v:512n},
+{id:"priority",cat:"voice",v:256n},{id:"request",cat:"voice",v:4294967296n},{id:"soundboard",cat:"voice",v:4398046511104n},
+{id:"ext_sounds",cat:"voice",v:35184372088832n},{id:"voice_status",cat:"voice",v:281474976710656n},{id:"activities",cat:"voice",v:549755813888n},
+];
+const L={
+en:{name:"English",general:"General Permissions",text:"Text Permissions",voice:"Voice Permissions",select:"Select Non-Administrative",note1:'Permissions highlighted in orange require that the bot owner has <a href="https://support.discord.com/hc/en-us/articles/219576828-Setting-up-Two-Factor-Authentication" target="_blank">two factor authentication</a> enabled.',note2:"View Channel and Read Messages are synonymous; they are both the same permission.",invite:"Invite a bot",scopes:"Requires Scopes",code:"Requires Code",client:"Client ID",revPh:"paste permission number + Enter",rev:"Reverse",admin:"Admin",clear:"Clear",copied:"Copied!",p:{selGeneral:"Select Non-Administrative",administrator:"Administrator",manage_roles:"Manage Roles",kick:"Kick Members",create_invite:"Create Instant Invite",manage_nicknames:"Manage Nicknames",manage_guild:"Manage Server",manage_channels:"Manage Channels",ban:"Ban Members",change_nickname:"Change Nickname",manage_webhooks:"Manage Webhooks",manage_emojis:"Manage Emojis",view_audit:"View Audit Log",view_insights:"View Server Insights",view_channel:"View Channel",timeout:"Timeout Members",manage_events:"Manage Events",create_events:"Create Events",create_expressions:"Create Expressions",view_creator:"View Creator Analytics",selText:"Select Non-Administrative",send_tts:"Send TTS Messages",embed:"Embed Links",read_history:"Read Message History",use_emoji:"Use External Emojis",send_messages:"Send Messages",manage_messages:"Manage Messages",attach:"Attach Files",mention:"Mention Everyone",reactions:"Add Reactions",slash:"Use Slash Commands",public_threads:"Create Public Threads",private_threads:"Create Private Threads",send_thread:"Send Messages in Threads",manage_threads:"Manage Threads",stickers:"Use External Stickers",voice_msg:"Send Voice Messages",polls:"Send Polls",pin:"Pin Messages",slowmode:"Bypass Slowmode",apps:"Use External Apps",selVoice:"Select Non-Administrative",connect:"Connect",mute:"Mute Members",move:"Move Members",speak:"Speak",deafen:"Deafen Members",vad:"Use Voice Activity",stream:"Go Live",priority:"Priority Speaker",request:"Request to Speak",soundboard:"Use Soundboard",ext_sounds:"Use External Sounds",voice_status:"Set Voice Channel Status",activities:"Use Activities"}},
+tr:{name:"Türkçe",general:"Genel İzinler",text:"Metin İzinleri",voice:"Ses İzinleri",select:"Non-Adminleri Seç",note1:'Turuncu ile işaretli izinler, bot sahibinin <a href="#" >iki faktörlü doğrulamayı</a> açmasını gerektirir.',note2:"Kanalı Görüntüle ve Mesajları Oku aynı izindir.",invite:"Bot Davet Et",scopes:"Scope Gerekli",code:"Kod Gerekli",client:"Client ID",revPh:"izin numarası yapıştır + Enter",rev:"Tersine Çevir",admin:"Admin",clear:"Temizle",copied:"Kopyalandı!",p:{selGeneral:"Non-Adminleri Seç",administrator:"Yönetici",manage_roles:"Rolleri Yönet",kick:"Üyeleri At",create_invite:"Davet Oluştur",manage_nicknames:"Takma Adları Yönet",manage_guild:"Sunucuyu Yönet",manage_channels:"Kanalları Yönet",ban:"Üyeleri Yasakla",change_nickname:"Takma Ad Değiştir",manage_webhooks:"Webhookları Yönet",manage_emojis:"Emojileri Yönet",view_audit:"Denetim Kaydını Gör",view_insights:"Sunucu İçgörüsü",view_channel:"Kanalı Görüntüle",timeout:"Üyelere Zaman Aşımı",manage_events:"Etkinlikleri Yönet",create_events:"Etkinlik Oluştur",create_expressions:"İfade Oluştur",view_creator:"Üretici Analitiği",selText:"Non-Adminleri Seç",send_tts:"TTS Mesajı Gönder",embed:"Embed Bağlantı",read_history:"Mesaj Geçmişini Oku",use_emoji:"Harici Emoji Kullan",send_messages:"Mesaj Gönder",manage_messages:"Mesajları Yönet",attach:"Dosya Ekle",mention:"Herkesten Bahset",reactions:"Tepki Ekle",slash:"Slash Komut Kullan",public_threads:"Herkese Açık Thread Aç",private_threads:"Özel Thread Aç",send_thread:"Thread'e Mesaj Gönder",manage_threads:"Threadleri Yönet",stickers:"Harici Sticker Kullan",voice_msg:"Sesli Mesaj Gönder",polls:"Anket Gönder",pin:"Mesaj Sabitle",slowmode:"Yavaş Modu Atlat",apps:"Harici Uygulama Kullan",selVoice:"Non-Adminleri Seç",connect:"Bağlan",mute:"Üyeleri Sustur",move:"Üyeleri Taşı",speak:"Konuş",deafen:"Sağırlaştır",vad:"Ses Algılama",stream:"Yayın Aç",priority:"Öncelikli Konuşmacı",request:"Söz İste",soundboard:"Soundboard Kullan",ext_sounds:"Harici Ses Kullan",voice_status:"Ses Durumu Belirle",activities:"Aktivite Kullan"}},
+de:{name:"Deutsch",general:"Allgemeine Berechtigungen",text:"Text-Berechtigungen",voice:"Sprach-Berechtigungen",select:"Nicht-Admin wählen",note1:'Orange markierte Rechte erfordern <a href="#">2FA</a> beim Bot-Besitzer.',note2:"Kanal ansehen und Nachrichten lesen sind identisch.",invite:"Bot einladen",scopes:"Scopes nötig",code:"Code nötig",client:"Client ID",revPh:"Berechtigungsnummer + Enter",rev:"Umkehren",admin:"Admin",clear:"Zurücksetzen",copied:"Kopiert!",p:{selGeneral:"Nicht-Admin wählen",administrator:"Administrator",manage_roles:"Rollen verwalten",kick:"Mitglieder kicken",create_invite:"Einladung erstellen",manage_nicknames:"Spitznamen verwalten",manage_guild:"Server verwalten",manage_channels:"Kanäle verwalten",ban:"Mitglieder bannen",change_nickname:"Spitznamen ändern",manage_webhooks:"Webhooks verwalten",manage_emojis:"Emojis verwalten",view_audit:"Audit-Log ansehen",view_insights:"Server-Einblicke",view_channel:"Kanal ansehen",timeout:"Mitglieder timeouten",manage_events:"Events verwalten",create_events:"Events erstellen",create_expressions:"Ausdrücke erstellen",view_creator:"Creator-Analyse",selText:"Nicht-Admin wählen",send_tts:"TTS senden",embed:"Links einbetten",read_history:"Verlauf lesen",use_emoji:"Externe Emojis",send_messages:"Nachrichten senden",manage_messages:"Nachrichten verwalten",attach:"Dateien anhängen",mention:"Alle erwähnen",reactions:"Reaktionen",slash:"Slash-Befehle",public_threads:"Öffentliche Threads",private_threads:"Private Threads",send_thread:"In Threads schreiben",manage_threads:"Threads verwalten",stickers:"Externe Sticker",voice_msg:"Sprachnachrichten",polls:"Umfragen",pin:"Nachrichten anpinnen",slowmode:"Slowmode umgehen",apps:"Externe Apps",selVoice:"Nicht-Admin wählen",connect:"Verbinden",mute:"Stummschalten",move:"Verschieben",speak:"Sprechen",deafen:"Taub stellen",vad:"Sprachaktivierung",stream:"Live gehen",priority:"Prioritätssprecher",request:"Sprechen anfragen",soundboard:"Soundboard",ext_sounds:"Externe Sounds",voice_status:"Voice-Status",activities:"Aktivitäten"}},
+fr:{name:"Français",general:"Permissions générales",text:"Permissions texte",voice:"Permissions vocales",select:"Sélect. non-admin",note1:'Les permissions en orange exigent la <a href="#">2FA</a> du propriétaire.',note2:"Voir le salon et lire les messages sont identiques.",invite:"Inviter un bot",scopes:"Scopes requis",code:"Code requis",client:"Client ID",revPh:"numéro + Entrée",rev:"Inverser",admin:"Admin",clear:"Effacer",copied:"Copié!",p:{selGeneral:"Sélect. non-admin",administrator:"Administrateur",manage_roles:"Gérer les rôles",kick:"Expulser",create_invite:"Créer invitation",manage_nicknames:"Gérer pseudos",manage_guild:"Gérer serveur",manage_channels:"Gérer salons",ban:"Bannir",change_nickname:"Changer pseudo",manage_webhooks:"Gérer webhooks",manage_emojis:"Gérer émojis",view_audit:"Voir logs",view_insights:"Voir insights",view_channel:"Voir salon",timeout:"Exclure temp.",manage_events:"Gérer events",create_events:"Créer events",create_expressions:"Créer expressions",view_creator:"Analyse créateur",selText:"Sélect. non-admin",send_tts:"Envoyer TTS",embed:"Intégrer liens",read_history:"Lire historique",use_emoji:"Émojis externes",send_messages:"Envoyer messages",manage_messages:"Gérer messages",attach:"Joindre fichiers",mention:"Mentionner all",reactions:"Réactions",slash:"Slash commands",public_threads:"Threads publics",private_threads:"Threads privés",send_thread:"Écrire en thread",manage_threads:"Gérer threads",stickers:"Stickers externes",voice_msg:"Messages vocaux",polls:"Sondages",pin:"Épingler",slowmode:"Contourner slowmode",apps:"Apps externes",selVoice:"Sélect. non-admin",connect:"Connecter",mute:"Mute",move:"Déplacer",speak:"Parler",deafen:"Sourdine",vad:"Voix auto",stream:"Go Live",priority:"Prioritaire",request:"Demander parole",soundboard:"Soundboard",ext_sounds:"Sons externes",voice_status:"Statut vocal",activities:"Activités"}},
+es:{name:"Español",general:"Permisos generales",text:"Permisos de texto",voice:"Permisos de voz",select:"Selec. no-admin",note1:'Los permisos naranjas requieren <a href="#">2FA</a> del dueño.',note2:"Ver canal y leer mensajes son lo mismo.",invite:"Invitar un bot",scopes:"Requiere scopes",code:"Requiere código",client:"Client ID",revPh:"número + Enter",rev:"Invertir",admin:"Admin",clear:"Limpiar",copied:"¡Copiado!",p:{selGeneral:"Selec. no-admin",administrator:"Administrador",manage_roles:"Gestionar roles",kick:"Expulsar",create_invite:"Crear invitación",manage_nicknames:"Gestionar apodos",manage_guild:"Gestionar servidor",manage_channels:"Gestionar canales",ban:"Banear",change_nickname:"Cambiar apodo",manage_webhooks:"Gestionar webhooks",manage_emojis:"Gestionar emojis",view_audit:"Ver auditoría",view_insights:"Ver insights",view_channel:"Ver canal",timeout:"Aislar miembros",manage_events:"Gestionar eventos",create_events:"Crear eventos",create_expressions:"Crear expresiones",view_creator:"Analítica",selText:"Selec. no-admin",send_tts:"Enviar TTS",embed:"Insertar enlaces",read_history:"Leer historial",use_emoji:"Emojis externos",send_messages:"Enviar mensajes",manage_messages:"Gestionar mensajes",attach:"Adjuntar archivos",mention:"Mencionar todos",reactions:"Reacciones",slash:"Slash commands",public_threads:"Hilos públicos",private_threads:"Hilos privados",send_thread:"Escribir en hilos",manage_threads:"Gestionar hilos",stickers:"Stickers externos",voice_msg:"Mensajes de voz",polls:"Encuestas",pin:"Fijar mensajes",slowmode:"Evitar slowmode",apps:"Apps externas",selVoice:"Selec. no-admin",connect:"Conectar",mute:"Silenciar",move:"Mover",speak:"Hablar",deafen:"Ensordecer",vad:"Voz automática",stream:"Transmitir",priority:"Prioritario",request:"Pedir palabra",soundboard:"Soundboard",ext_sounds:"Sonidos externos",voice_status:"Estado de voz",activities:"Actividades"}},
+pt:{name:"Português",general:"Permissões gerais",text:"Permissões de texto",voice:"Permissões de voz",select:"Selec. não-admin",note1:'Permissões laranja exigem <a href="#">2FA</a> do dono.',note2:"Ver canal e ler mensagens são iguais.",invite:"Convidar bot",scopes:"Requer scopes",code:"Requer código",client:"Client ID",revPh:"número + Enter",rev:"Inverter",admin:"Admin",clear:"Limpar",copied:"Copiado!",p:{selGeneral:"Selec. não-admin",administrator:"Administrador",manage_roles:"Gerenciar cargos",kick:"Expulsar",create_invite:"Criar convite",manage_nicknames:"Gerenciar apelidos",manage_guild:"Gerenciar servidor",manage_channels:"Gerenciar canais",ban:"Banir",change_nickname:"Mudar apelido",manage_webhooks:"Gerenciar webhooks",manage_emojis:"Gerenciar emojis",view_audit:"Ver auditoria",view_insights:"Ver insights",view_channel:"Ver canal",timeout:"Suspender membros",manage_events:"Gerenciar eventos",create_events:"Criar eventos",create_expressions:"Criar expressões",view_creator:"Análise criador",selText:"Selec. não-admin",send_tts:"Enviar TTS",embed:"Incorporar links",read_history:"Ler histórico",use_emoji:"Emojis externos",send_messages:"Enviar mensagens",manage_messages:"Gerenciar mensagens",attach:"Anexar arquivos",mention:"Mencionar todos",reactions:"Reações",slash:"Slash commands",public_threads:"Threads públicas",private_threads:"Threads privadas",send_thread:"Escrever em threads",manage_threads:"Gerenciar threads",stickers:"Stickers externos",voice_msg:"Mensagens de voz",polls:"Enquetes",pin:"Fixar mensagens",slowmode:"Ignorar slowmode",apps:"Apps externos",selVoice:"Selec. não-admin",connect:"Conectar",mute:"Mutar",move:"Mover",speak:"Falar",deafen:"Ensurdecer",vad:"Voz automática",stream:"Ao vivo",priority:"Prioritário",request:"Pedir fala",soundboard:"Soundboard",ext_sounds:"Sons externos",voice_status:"Status de voz",activities:"Atividades"}},
+it:{name:"Italiano",general:"Permessi generali",text:"Permessi testo",voice:"Permessi vocali",select:"Selez. non-admin",note1:'I permessi arancioni richiedono <a href="#">2FA</a>.',note2:"Vedere canale e leggere messaggi sono uguali.",invite:"Invita un bot",scopes:"Richiede scope",code:"Richiede codice",client:"Client ID",revPh:"numero + Invio",rev:"Inverti",admin:"Admin",clear:"Pulisci",copied:"Copiato!",p:{selGeneral:"Selez. non-admin",administrator:"Amministratore",manage_roles:"Gestisci ruoli",kick:"Espelli",create_invite:"Crea invito",manage_nicknames:"Gestisci nick",manage_guild:"Gestisci server",manage_channels:"Gestisci canali",ban:"Banna",change_nickname:"Cambia nick",manage_webhooks:"Gestisci webhook",manage_emojis:"Gestisci emoji",view_audit:"Vedi log",view_insights:"Vedi insight",view_channel:"Vedi canale",timeout:"Timeout membri",manage_events:"Gestisci eventi",create_events:"Crea eventi",create_expressions:"Crea espressioni",view_creator:"Analisi creator",selText:"Selez. non-admin",send_tts:"Invia TTS",embed:"Incorpora link",read_history:"Leggi cronologia",use_emoji:"Emoji esterni",send_messages:"Invia messaggi",manage_messages:"Gestisci messaggi",attach:"Allega file",mention:"Menziona tutti",reactions:"Reazioni",slash:"Slash commands",public_threads:"Thread pubblici",private_threads:"Thread privati",send_thread:"Scrivi nei thread",manage_threads:"Gestisci thread",stickers:"Sticker esterni",voice_msg:"Messaggi vocali",polls:"Sondaggi",pin:"Fissa messaggi",slowmode:"Bypassa slowmode",apps:"App esterne",selVoice:"Selez. non-admin",connect:"Connetti",mute:"Muta",move:"Sposta",speak:"Parla",deafen:"Sordina",vad:"Voce automatica",stream:"Go Live",priority:"Prioritario",request:"Richiedi parola",soundboard:"Soundboard",ext_sounds:"Suoni esterni",voice_status:"Stato vocale",activities:"Attività"}},
+ru:{name:"Русский",general:"Общие права",text:"Текстовые права",voice:"Голосовые права",select:"Выбрать не-админ",note1:'Оранжевые права требуют <a href="#">2FA</a> владельца.',note2:"Просмотр канала и чтение сообщений — одно и то же.",invite:"Пригласить бота",scopes:"Нужны скоупы",code:"Нужен код",client:"Client ID",revPh:"номер + Enter",rev:"Обратить",admin:"Админ",clear:"Очистить",copied:"Скопировано!",p:{selGeneral:"Выбрать не-админ",administrator:"Администратор",manage_roles:"Управлять ролями",kick:"Кикать",create_invite:"Создавать приглашения",manage_nicknames:"Управлять никами",manage_guild:"Управлять сервером",manage_channels:"Управлять каналами",ban:"Банить",change_nickname:"Менять ник",manage_webhooks:"Вебхуки",manage_emojis:"Эмодзи",view_audit:"Журнал аудита",view_insights:"Аналитика",view_channel:"Смотреть канал",timeout:"Таймаут",manage_events:"Ивенты",create_events:"Создавать ивенты",create_expressions:"Создавать эмодзи",view_creator:"Аналитика автора",selText:"Выбрать не-админ",send_tts:"TTS сообщения",embed:"Ссылки",read_history:"Читать историю",use_emoji:"Внешние эмодзи",send_messages:"Отправлять сообщения",manage_messages:"Управлять сообщениями",attach:"Файлы",mention:"Упоминать всех",reactions:"Реакции",slash:"Слэш-команды",public_threads:"Публичные треды",private_threads:"Приватные треды",send_thread:"Писать в треды",manage_threads:"Управлять тредами",stickers:"Внешние стикеры",voice_msg:"Голосовые сообщения",polls:"Опросы",pin:"Закреплять",slowmode:"Обход слоумода",apps:"Внешние приложения",selVoice:"Выбрать не-админ",connect:"Подключаться",mute:"Мьютить",move:"Перемещать",speak:"Говорить",deafen:"Оглушать",vad:"Голосовая активность",stream:"Стрим",priority:"Приоритет",request:"Проситься говорить",soundboard:"Саундборд",ext_sounds:"Внешние звуки",voice_status:"Статус канала",activities:"Активности"}},
+ar:{name:"العربية",general:"الأذونات العامة",text:"أذونات النص",voice:"أذونات الصوت",select:"تحديد غير الإداري",note1:'الأذونات البرتقالية تتطلب <a href="#">المصادقة الثنائية</a>.',note2:"عرض القناة وقراءة الرسائل نفس الإذن.",invite:"دعوة بوت",scopes:"يتطلب نطاقات",code:"يتطلب كود",client:"Client ID",revPh:"رقم + Enter",rev:"عكس",admin:"أدمن",clear:"مسح",copied:"تم النسخ!",p:{selGeneral:"تحديد غير الإداري",administrator:"مسؤول",manage_roles:"إدارة الرتب",kick:"طرد",create_invite:"إنشاء دعوة",manage_nicknames:"إدارة الألقاب",manage_guild:"إدارة السيرفر",manage_channels:"إدارة القنوات",ban:"حظر",change_nickname:"تغيير اللقب",manage_webhooks:"إدارة الويبهوك",manage_emojis:"إدارة الإيموجي",view_audit:"سجل التدقيق",view_insights:"الإحصائيات",view_channel:"عرض القناة",timeout:"مهلة الأعضاء",manage_events:"إدارة الفعاليات",create_events:"إنشاء فعاليات",create_expressions:"إنشاء تعبيرات",view_creator:"تحليلات",selText:"تحديد غير الإداري",send_tts:"رسائل TTS",embed:"تضمين الروابط",read_history:"قراءة السجل",use_emoji:"إيموجي خارجي",send_messages:"إرسال رسائل",manage_messages:"إدارة الرسائل",attach:"إرفاق ملفات",mention:"ذكر الجميع",reactions:"تفاعلات",slash:"أوامر سلاش",public_threads:"ثريد عام",private_threads:"ثريد خاص",send_thread:"إرسال في الثريد",manage_threads:"إدارة الثريد",stickers:"ملصقات خارجية",voice_msg:"رسائل صوتية",polls:"استطلاعات",pin:"تثبيت",slowmode:"تجاوز البطيء",apps:"تطبيقات خارجية",selVoice:"تحديد غير الإداري",connect:"اتصال",mute:"كتم",move:"نقل",speak:"تحدث",deafen:"صم",vad:"صوت تلقائي",stream:"بث",priority:"أولوية",request:"طلب التحدث",soundboard:"لوحة الصوت",ext_sounds:"أصوات خارجية",voice_status:"حالة القناة",activities:"أنشطة"}},
+ja:{name:"日本語",general:"一般権限",text:"テキスト権限",voice:"ボイス権限",select:"非管理者を選択",note1:'オレンジはボット所有者の<a href="#">2FA</a>が必要です。',note2:"チャンネル表示と履歴読み取りは同じ権限です。",invite:"Botを招待",scopes:"スコープ必要",code:"コード必要",client:"Client ID",revPh:"番号 + Enter",rev:"反転",admin:"管理者",clear:"クリア",copied:"コピーしました!",p:{selGeneral:"非管理者を選択",administrator:"管理者",manage_roles:"ロール管理",kick:"キック",create_invite:"招待作成",manage_nicknames:"ニックネーム管理",manage_guild:"サーバー管理",manage_channels:"チャンネル管理",ban:"BAN",change_nickname:"ニックネーム変更",manage_webhooks:"Webhook管理",manage_emojis:"絵文字管理",view_audit:"監査ログ",view_insights:"インサイト",view_channel:"チャンネル表示",timeout:"タイムアウト",manage_events:"イベント管理",create_events:"イベント作成",create_expressions:"エクスプレッション作成",view_creator:"クリエイター分析",selText:"非管理者を選択",send_tts:"TTS送信",embed:"リンク埋め込み",read_history:"履歴を読む",use_emoji:"外部絵文字",send_messages:"送信",manage_messages:"メッセージ管理",attach:"ファイル添付",mention:"全員メンション",reactions:"リアクション",slash:"スラッシュコマンド",public_threads:"公開スレッド",private_threads:"非公開スレッド",send_thread:"スレッド送信",manage_threads:"スレッド管理",stickers:"外部ステッカー",voice_msg:"ボイスメッセージ",polls:"投票",pin:"ピン留め",slowmode:"スローモード回避",apps:"外部アプリ",selVoice:"非管理者を選択",connect:"接続",mute:"ミュート",move:"移動",speak:"発言",deafen:"スピーカーオフ",vad:"音声検出",stream:"配信",priority:"優先話者",request:"発言リクエスト",soundboard:"サウンドボード",ext_sounds:"外部サウンド",voice_status:"VCステータス",activities:"アクティビティ"}},
+};
+let lang=localStorage.getItem("grave_lang")||(navigator.language||"en").slice(0,2);
+if(!L[lang])lang="en";
+let needScopes=false,needCode=false;const state={};
+function t(){return L[lang];}
+const RISK_TXT={en:["Safe","Low","Medium","High","CRITICAL"],tr:["Güvenli","Düşük","Orta","Yüksek","KRİTİK"],de:["Sicher","Niedrig","Mittel","Hoch","KRITISCH"],fr:["Sûr","Faible","Moyen","Élevé","CRITIQUE"],es:["Seguro","Bajo","Medio","Alto","CRÍTICO"],pt:["Seguro","Baixo","Médio","Alto","CRÍTICO"],it:["Sicuro","Basso","Medio","Alto","CRITICO"],ru:["Безопасно","Низкий","Средний","Высокий","КРИТИЧНО"],ar:["آمن","منخفض","متوسط","مرتفع","حرج"],ja:["安全","低","中","高","重大"]};
+const ADMIN_TXT={en:"⚠ Administrator grants ALL permissions — use with caution!",tr:"⚠ Yönetici TÜM izinleri açar — dikkatli kullan!",de:"⚠ Administrator gewährt ALLE Rechte — Vorsicht!",fr:"⚠ Administrateur donne TOUTES les permissions — prudence !",es:"⚠ Administrador otorga TODOS los permisos — ¡cuidado!",pt:"⚠ Administrador concede TODAS as permissões — cuidado!",it:"⚠ Amministratore concede TUTTI i permessi — attenzione!",ru:"⚠ Администратор даёт ВСЕ права — осторожно!",ar:"⚠ المسؤول يمنح كل الصلاحيات — احذر!",ja:"⚠ 管理者はすべての権限を付与します — 注意！"};
+const COPY_TXT={en:"📋 Copy Link",tr:"📋 Linki Kopyala",de:"📋 Link kopieren",fr:"📋 Copier le lien",es:"📋 Copiar enlace",pt:"📋 Copiar link",it:"📋 Copia link",ru:"📋 Копировать ссылку",ar:"📋 نسخ الرابط",ja:"📋 リンクをコピー"};
+const OPEN_TXT={en:"↗ Open",tr:"↗ Aç",de:"↗ Öffnen",fr:"↗ Ouvrir",es:"↗ Abrir",pt:"↗ Abrir",it:"↗ Apri",ru:"↗ Открыть",ar:"↗ فتح",ja:"↗ 開く"};
+const RISK_W={administrator:100,manage_guild:25,manage_roles:25,ban:25,kick:20,manage_channels:12,manage_webhooks:12,manage_messages:10,timeout:10,manage_threads:8,manage_events:8,mention:5,pin:5,view_audit:3};
+function setLang(v){lang=v;localStorage.setItem("grave_lang",v);applyLang();}
+function applyLang(){
+document.documentElement.lang=lang;document.documentElement.dir=(lang==="ar")?"rtl":"ltr";
+const d=t();
+document.getElementById("h-general").textContent=d.general;
+document.getElementById("h-text").textContent=d.text;
+document.getElementById("h-voice").textContent=d.voice;
+document.getElementById("note1").innerHTML=d.note1;
+document.getElementById("note2").textContent=d.note2;
+document.getElementById("h-invite").textContent=d.invite;
+document.getElementById("lbl-scopes").textContent=d.scopes;
+document.getElementById("lbl-code").textContent=d.code;
+document.getElementById("lbl-client").textContent=d.client;
+const _ri=document.getElementById("reverseInput");if(_ri)_ri.placeholder=d.revPh;
+const _br=document.getElementById("b-rev");if(_br)_br.textContent=d.rev;
+const _ba=document.getElementById("b-admin");if(_ba)_ba.textContent=d.admin;
+const _bc=document.getElementById("b-clear");if(_bc)_bc.textContent=d.clear;
+document.getElementById("langName").textContent=d.name;
+const _cl=document.getElementById("b-copyLink");if(_cl)_cl.textContent=COPY_TXT[lang]||COPY_TXT.en;
+const _op=document.getElementById("b-open");if(_op)_op.textContent=OPEN_TXT[lang]||OPEN_TXT.en;
+buildLangMenu();build();recalculate(true);
+}
+function build(){
+["general","text","voice"].forEach((c,i)=>{
+const el=document.getElementById("list-"+c);el.innerHTML="";
+PERMS.filter(p=>p.cat===c).forEach((p,idx)=>{
+const name=(t().p[p.id]||L.en.p[p.id]||p.id);
+const d=document.createElement("div");d.className="row"+(state[p.id]?" on":"");d.id="row_"+p.id;
+const isSel=p.sel? t().select : name;
+d.innerHTML=`<div class="box"></div><div class="lbl ${p.tfa?'orange':''}">${isSel}</div>`;
+d.onclick=()=>toggle(p);el.appendChild(d);
+});
+});
+}
+function popRow(id){const r=document.getElementById("row_"+id);if(!r)return;r.classList.remove("pop");void r.offsetWidth;r.classList.add("pop");}
+function toggle(p){
+if(p.sel){const items=PERMS.filter(x=>x.cat===p.cat&&!x.sel&&x.id!=="administrator");const all=items.every(x=>state[x.id]);items.forEach(x=>{state[x.id]=!all;const r=document.getElementById("row_"+x.id);if(r)r.classList.toggle("on",state[x.id]);});state[p.id]=!all;const rs=document.getElementById("row_"+p.id);if(rs)rs.classList.toggle("on",state[p.id]);}
+else{state[p.id]=!state[p.id];const r=document.getElementById("row_"+p.id);if(r){r.classList.toggle("on",state[p.id]);if(state[p.id])popRow(p.id);}}
+recalculate();
+}
+function calc(){let x=0n;for(const p of PERMS){if(p.v&&state[p.id])x|=p.v;}return x;}
+let _raf=0;function recalculate(skip){
+const v=calc();
+const num=document.getElementById("number"),eq=document.getElementById("equation"),cp=document.getElementById("copyTop");
+if(num)num.textContent=v.toString();
+if(eq)eq.textContent="0x"+v.toString(16);
+if(cp)cp.textContent="Copy "+v.toString();
+if(!skip){cancelAnimationFrame(_raf);_raf=requestAnimationFrame(()=>{try{history.replaceState(null,"","#"+v.toString());}catch(e){}});}
+const box=document.querySelector(".calc");if(box){box.classList.remove("bump");void box.offsetWidth;box.classList.add("bump");}
+const cid=document.getElementById("clientID").value.trim();const a=document.getElementById("invite");
+if(/^\d{5,22}$/.test(cid)){document.getElementById("clientID").classList.remove("error");
+let s="bot";if(needScopes)s=document.getElementById("oauthScopes").value.trim()||"bot";
+let u="https://discord.com/oauth2/authorize?client_id="+cid+"&permissions="+v.toString()+"&scope="+encodeURIComponent(s);
+if(needCode)u+="&response_type=code";if(a.href!==u){a.href=u;a.textContent=u;const il=a.closest(".invite-link");if(il){il.classList.remove("flash");void il.offsetWidth;il.classList.add("flash");}}}
+else{document.getElementById("clientID").classList.add("error");a.textContent="Invalid Client ID";a.href="#";}
+let score=0,danger=0;for(const p of PERMS){if(p.v&&state[p.id]&&RISK_W[p.id]){score+=RISK_W[p.id];danger++;}}
+const isAdmin=!!state.administrator;if(isAdmin)score=100;
+const lvl=isAdmin||score>=60?4:score>=30?3:score>=10?2:score>0?1:0;
+const pill=document.getElementById("riskPill"),rt=document.getElementById("riskTxt");
+if(pill&&rt){const names=RISK_TXT[lang]||RISK_TXT.en;rt.textContent=(lvl===0?names[0]:names[lvl]+" · "+danger);pill.className="risk-pill "+(lvl===1?"low":lvl===2?"med":lvl===3?"high":lvl===4?"crit":"");}
+const aw=document.getElementById("adminWarn");if(aw){if(isAdmin){aw.textContent=ADMIN_TXT[lang]||ADMIN_TXT.en;aw.classList.remove("hidden");}else aw.classList.add("hidden");}
+}
+function toggleScopes(){needScopes=!needScopes;document.getElementById("rowScopes").classList.toggle("on",needScopes);document.getElementById("scopeField").classList.toggle("hidden",!needScopes);recalculate();}
+function toggleCode(){needCode=!needCode;document.getElementById("rowCode").classList.toggle("on",needCode);recalculate();}
+function sync(v){try{const x=BigInt(v||"0");PERMS.forEach(p=>{if(p.v)state[p.id]=(x&p.v)===p.v;});build();}catch(e){}recalculate(true);}
+function applyReverse(){const e=document.getElementById("reverseInput");if(!e)return;sync(e.value.trim());}
+function preset(k){PERMS.forEach(p=>{if(p.v)state[p.id]=(k==="admin"&&p.id==="administrator");});build();recalculate();}
+function toast(m){const e=document.getElementById("toast");e.textContent=m;e.classList.add("show");clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove("show"),1400);}
+async function copyDec(){try{await navigator.clipboard.writeText(document.getElementById("number").textContent);toast(t().copied);}catch(e){}}
+async function copyInvite(){try{await navigator.clipboard.writeText(document.getElementById("invite").textContent);toast(t().copied);}catch(e){}}
+function openInvite(){const u=document.getElementById("invite").href;if(u&&u.startsWith("http"))window.open(u,"_blank");}
+function getHash(){const h=location.hash;return h&&h.length>1?h.substring(1):null;}
+function buildLangMenu(){const m=document.getElementById("langMenu");m.innerHTML=`<div class="mtitle">Language</div>`;Object.keys(L).forEach(k=>{const b=document.createElement("button");b.className="lang-item"+(k===lang?" active":"");b.innerHTML=`<span>${L[k].name}</span><span class="tick">✓</span>`;b.onclick=(e)=>{e.stopPropagation();document.getElementById("langPicker").classList.remove("open");setLang(k);};m.appendChild(b);});}
+function toggleLangMenu(e){e.stopPropagation();document.getElementById("langPicker").classList.toggle("open");}
+document.addEventListener("click",()=>{const p=document.getElementById("langPicker");if(p)p.classList.remove("open");});
+buildLangMenu();
+applyLang();
+const h=getHash();if(h&&/^\d+$/.test(h))sync(h);
+setTimeout(()=>document.getElementById("loader").classList.add("done"),700);
+</script>
+</body>
+</html>
